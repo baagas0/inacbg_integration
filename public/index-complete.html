@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INACBG Complete Bridging System</title>
+    <link rel="stylesheet" href="styles-complete.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏥 INACBG Complete Bridging System</h1>
+            <p>Sistem Integrasi Lengkap BPJS Kesehatan - Indonesia Case Base Groups</p>
+            <div class="header-actions">
+                <a href="/api-docs" target="_blank" class="btn-api-docs">📚 API Documentation</a>
+                <a href="/" class="btn-simple">🔄 Simple Mode</a>
+            </div>
+        </header>
+
+        <nav class="nav-tabs">
+            <button class="tab-btn active" data-tab="auth">🔐 Auth</button>
+            <button class="tab-btn" data-tab="claims">📋 Claims</button>
+            <button class="tab-btn" data-tab="inquiry">🔍 Inquiry</button>
+            <button class="tab-btn" data-tab="monitoring">📊 Monitoring</button>
+        </nav>
+
+        <main>
+            <!-- Authentication Section -->
+            <section id="auth" class="tab-content active">
+                <div class="section">
+                    <h2>🔐 Autentikasi INACBG</h2>
+                    <form id="authForm" class="form-card">
+                        <div class="form-group">
+                            <label for="encryptionKey">Encryption Key:</label>
+                            <input type="password" id="encryptionKey" name="encryption_key" required
+                                   placeholder="Masukkan encryption key dari INACBG">
+                            <small>🔒 Encryption key diperoleh dari admin INACBG</small>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">💾 Simpan Key</button>
+                            <button type="button" onclick="checkAuthStatus()" class="btn-secondary">🔄 Check Status</button>
+                        </div>
+                    </form>
+                    <div id="authStatus" class="status-message"></div>
+                </div>
+            </section>
+
+            <!-- Claims Management Section -->
+            <section id="claims" class="tab-content">
+                <div class="section">
+                    <h2>📋 Manajemen Klaim</h2>
+
+                    <!-- Claim Form Tabs -->
+                    <div class="claim-tabs">
+                        <button class="claim-tab-btn active" data-claim-tab="new">➕ New Claim</button>
+                        <button class="claim-tab-btn" data-claim-tab="update">✏️ Update Claim</button>
+                        <button class="claim-tab-btn" data-claim-tab="delete">🗑️ Delete Claim</button>
+                        <button class="claim-tab-btn" data-claim-tab="final">✅ Final/Unfinal</button>
+                    </div>
+
+                    <!-- New Claim Form -->
+                    <div id="new-claim" class="claim-tab-content active">
+                        <form id="newClaimForm" class="form-card">
+                            <h3>➕ Pengajuan Klaim Baru</h3>
+
+                            <!-- Patient Information -->
+                            <div class="form-section">
+                                <h4>👤 Informasi Pasien</h4>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="nomorSep">Nomor SEP:*</label>
+                                        <input type="text" id="nomorSep" name="nomor_sep" required
+                                               placeholder="0001R0011123000001">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="nomorRm">Nomor RM:*</label>
+                                        <input type="text" id="nomorRm" name="nomor_rm" required
+                                               placeholder="RM001234">
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="namaPasien">Nama Pasien:*</label>
+                                        <input type="text" id="namaPasien" name="nama_pasien" required
+                                               placeholder="John Doe">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="nomorKartu">Nomor Kartu BPJS:*</label>
+                                        <input type="text" id="nomorKartu" name="nomor_kartu" required
+                                               placeholder="0001234567890">
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="tanggalLahir">Tanggal Lahir:*</label>
+                                        <input type="date" id="tanggalLahir" name="tanggal_lahir" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="jenisKelamin">Jenis Kelamin:</label>
+                                        <select id="jenisKelamin" name="jenis_kelamin">
+                                            <option value="">Pilih</option>
+                                            <option value="L">Laki-laki</option>
+                                            <option value="P">Perempuan</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Provider Information -->
+                            <div class="form-section">
+                                <h4>🏥 Informasi Provider</h4>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="kodeProvider">Kode Provider:*</label>
+                                        <input type="text" id="kodeProvider" name="kode_provider" required
+                                               placeholder="P0012345">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="namaProvider">Nama Provider:</label>
+                                        <input type="text" id="namaProvider" name="nama_provider"
+                                               placeholder="RS Sehat Indonesia">
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="kelasRawat">Kelas Rawat:*</label>
+                                        <select id="kelasRawat" name="kelas_rawat" required>
+                                            <option value="">Pilih Kelas</option>
+                                            <option value="1">Kelas 1</option>
+                                            <option value="2">Kelas 2</option>
+                                            <option value="3">Kelas 3</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="dpjp">DPJP:</label>
+                                        <input type="text" id="dpjp" name="dpjp"
+                                               placeholder="Dr. Smith">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Admission Information -->
+                            <div class="form-section">
+                                <h4>📅 Informasi Pendaftaran</h4>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="tanggalMasuk">Tanggal Masuk:*</label>
+                                        <input type="date" id="tanggalMasuk" name="tanggal_masuk" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="tanggalKeluar">Tanggal Keluar:</label>
+                                        <input type="date" id="tanggalKeluar" name="tanggal_keluar">
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="jenisRawat">Jenis Rawat:*</label>
+                                        <select id="jenisRawat" name="jenis_rawat" required>
+                                            <option value="">Pilih Jenis</option>
+                                            <option value="1">Rawat Inap</option>
+                                            <option value="2">Rawat Jalan</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="caraBayar">Cara Bayar:*</label>
+                                        <select id="caraBayar" name="cara_bayar" required>
+                                            <option value="">Pilih Cara Bayar</option>
+                                            <option value="1">Perorangan</option>
+                                            <option value="2">Perusahaan</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Clinical Information -->
+                            <div class="form-section">
+                                <h4>🩺 Informasi Klinis</h4>
+                                <div class="form-group">
+                                    <label for="diagnosa">Diagnosa (JSON):</label>
+                                    <textarea id="diagnosa" name="diagnosa" rows="4"
+                                              placeholder='[{"kode": "A00", "nama": "Kolera"}]'></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="procedure">Prosedur (JSON):</label>
+                                    <textarea id="procedure" name="procedure" rows="4"
+                                              placeholder='[{"kode": "81.51", "nama": "Operasi Usus Buntu"}]'></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="tarif">Informasi Tarif (JSON):</label>
+                                    <textarea id="tarif" name="tarif" rows="4"
+                                              placeholder='{"tarif_pelayanan": 5000000, "tarif_obat": 1000000, "total_tarif": 6000000}'></textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">📤 Ajukan Klaim Baru</button>
+                                <button type="button" onclick="loadClaimTemplate()" class="btn-secondary">📋 Load Template</button>
+                                <button type="button" onclick="clearNewClaimForm()" class="btn-secondary">🔄 Clear Form</button>
+                            </div>
+                        </form>
+                        <div id="newClaimStatus" class="status-message"></div>
+                    </div>
+
+                    <!-- Update Claim Form -->
+                    <div id="update-claim" class="claim-tab-content">
+                        <form id="updateClaimForm" class="form-card">
+                            <h3>✏️ Update Data Klaim</h3>
+                            <div class="form-group">
+                                <label for="updateNomorSep">Nomor SEP:*</label>
+                                <input type="text" id="updateNomorSep" name="nomor_sep" required
+                                       placeholder="0001R0011123000001">
+                            </div>
+                            <div class="form-group">
+                                <label for="updateData">Update Data (JSON):*</label>
+                                <textarea id="updateData" name="update_data" rows="10" required
+                                          placeholder='{"nama_pasien": "Updated Name", "tanggal_keluar": "2024-01-25", ...}'></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">✏️ Update Klaim</button>
+                                <button type="button" onclick="clearUpdateClaimForm()" class="btn-secondary">🔄 Clear Form</button>
+                            </div>
+                        </form>
+                        <div id="updateClaimStatus" class="status-message"></div>
+                    </div>
+
+                    <!-- Delete Claim Form -->
+                    <div id="delete-claim" class="claim-tab-content">
+                        <form id="deleteClaimForm" class="form-card">
+                            <h3>🗑️ Hapus Klaim</h3>
+                            <div class="warning-box">
+                                ⚠️ Perhatian: Tindakan ini tidak dapat dibatalkan!
+                            </div>
+                            <div class="form-group">
+                                <label for="deleteNomorSep">Nomor SEP:*</label>
+                                <input type="text" id="deleteNomorSep" name="nomor_sep" required
+                                       placeholder="0001R0011123000001">
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-danger">🗑️ Hapus Klaim</button>
+                                <button type="button" onclick="clearDeleteClaimForm()" class="btn-secondary">🔄 Clear Form</button>
+                            </div>
+                        </form>
+                        <div id="deleteClaimStatus" class="status-message"></div>
+                    </div>
+
+                    <!-- Final/Unfinal Claim Form -->
+                    <div id="final-claim" class="claim-tab-content">
+                        <form id="finalClaimForm" class="form-card">
+                            <h3>✅ Finalisasi/Batal Finalisasi Klaim</h3>
+                            <div class="form-group">
+                                <label for="finalNomorSep">Nomor SEP:*</label>
+                                <input type="text" id="finalNomorSep" name="nomor_sep" required
+                                       placeholder="0001R0011123000001">
+                            </div>
+                            <div class="form-group">
+                                <label for="finalAction">Action:*</label>
+                                <select id="finalAction" name="final_action" required>
+                                    <option value="">Pilih Action</option>
+                                    <option value="set">✅ Set Final</option>
+                                    <option value="unset">❌ Unset Final</option>
+                                </select>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">🚀 Proses</button>
+                                <button type="button" onclick="clearFinalClaimForm()" class="btn-secondary">🔄 Clear Form</button>
+                            </div>
+                        </form>
+                        <div id="finalClaimStatus" class="status-message"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Inquiry Section -->
+            <section id="inquiry" class="tab-content">
+                <div class="section">
+                    <h2>🔍 Inquiry Data</h2>
+
+                    <div class="inquiry-tabs">
+                        <button class="inquiry-tab-btn active" data-inquiry-tab="claim">📋 Claim Data</button>
+                        <button class="inquiry-tab-btn" data-inquiry-tab="patient">👤 Patient Data</button>
+                        <button class="inquiry-tab-btn" data-inquiry-tab="sep">📄 SEP Data</button>
+                    </div>
+
+                    <!-- Claim Data Inquiry -->
+                    <div id="claim-inquiry" class="inquiry-tab-content active">
+                        <form id="claimInquiryForm" class="form-card">
+                            <h3>📋 Inquiry Claim Data</h3>
+                            <div class="form-group">
+                                <label>Pencarian berdasarkan (salah satu):</label>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="inquiryClaimSep">Nomor SEP:</label>
+                                    <input type="text" id="inquiryClaimSep" name="nomor_sep"
+                                           placeholder="0001R0011123000001">
+                                </div>
+                                <div class="form-group">
+                                    <label for="inquiryClaimRm">Nomor RM:</label>
+                                    <input type="text" id="inquiryClaimRm" name="nomor_rm"
+                                           placeholder="RM001234">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="inquiryClaimKartu">Nomor Kartu BPJS:</label>
+                                <input type="text" id="inquiryClaimKartu" name="nomor_kartu"
+                                       placeholder="0001234567890">
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">🔍 Cari Data</button>
+                                <button type="button" onclick="clearClaimInquiryForm()" class="btn-secondary">🔄 Clear Form</button>
+                            </div>
+                        </form>
+                        <div id="claimInquiryResult" class="inquiry-result"></div>
+                    </div>
+
+                    <!-- Patient Data Inquiry -->
+                    <div id="patient-inquiry" class="inquiry-tab-content">
+                        <form id="patientInquiryForm" class="form-card">
+                            <h3>👤 Inquiry Patient Data</h3>
+                            <div class="form-group">
+                                <label>Pencarian berdasarkan (salah satu):</label>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="inquiryPatientSep">Nomor SEP:</label>
+                                    <input type="text" id="inquiryPatientSep" name="nomor_sep"
+                                           placeholder="0001R0011123000001">
+                                </div>
+                                <div class="form-group">
+                                    <label for="inquiryPatientRm">Nomor RM:</label>
+                                    <input type="text" id="inquiryPatientRm" name="nomor_rm"
+                                           placeholder="RM001234">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="inquiryPatientKartu">Nomor Kartu BPJS:</label>
+                                <input type="text" id="inquiryPatientKartu" name="nomor_kartu"
+                                       placeholder="0001234567890">
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">🔍 Cari Data</button>
+                                <button type="button" onclick="clearPatientInquiryForm()" class="btn-secondary">🔄 Clear Form</button>
+                            </div>
+                        </form>
+                        <div id="patientInquiryResult" class="inquiry-result"></div>
+                    </div>
+
+                    <!-- SEP Data Inquiry -->
+                    <div id="sep-inquiry" class="inquiry-tab-content">
+                        <form id="sepInquiryForm" class="form-card">
+                            <h3>📄 Inquiry SEP Data</h3>
+                            <div class="form-group">
+                                <label>Pencarian berdasarkan (salah satu):</label>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="inquirySepSep">Nomor SEP:</label>
+                                    <input type="text" id="inquirySepSep" name="nomor_sep"
+                                           placeholder="0001R0011123000001">
+                                </div>
+                                <div class="form-group">
+                                    <label for="inquirySepRm">Nomor RM:</label>
+                                    <input type="text" id="inquirySepRm" name="nomor_rm"
+                                           placeholder="RM001234">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="inquirySepKartu">Nomor Kartu BPJS:</label>
+                                <input type="text" id="inquirySepKartu" name="nomor_kartu"
+                                       placeholder="0001234567890">
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">🔍 Cari Data</button>
+                                <button type="button" onclick="clearSepInquiryForm()" class="btn-secondary">🔄 Clear Form</button>
+                            </div>
+                        </form>
+                        <div id="sepInquiryResult" class="inquiry-result"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Monitoring Section -->
+            <section id="monitoring" class="tab-content">
+                <div class="section">
+                    <h2>📊 Monitoring & Logs</h2>
+
+                    <div class="monitoring-controls">
+                        <button onclick="loadLogs()" class="btn-primary">🔄 Refresh Logs</button>
+                        <button onclick="loadClaims()" class="btn-primary">🔄 Refresh Claims</button>
+                        <button onclick="clearDisplay()" class="btn-secondary">🗑️ Clear Display</button>
+                    </div>
+
+                    <!-- Logs Display -->
+                    <div class="logs-section">
+                        <h3>📋 API Response Logs</h3>
+                        <div class="filter-controls">
+                            <select id="logMethodFilter">
+                                <option value="">All Methods</option>
+                                <option value="new_claim">New Claim</option>
+                                <option value="update_claim">Update Claim</option>
+                                <option value="delete_claim">Delete Claim</option>
+                                <option value="set_claim_final">Set Final</option>
+                                <option value="unset_claim_final">Unset Final</option>
+                                <option value="claim_data">Claim Inquiry</option>
+                                <option value="patient_data">Patient Inquiry</option>
+                                <option value="sep_data">SEP Inquiry</option>
+                            </select>
+                            <select id="logStatusFilter">
+                                <option value="">All Status</option>
+                                <option value="success">Success</option>
+                                <option value="error">Error</option>
+                            </select>
+                            <input type="number" id="logLimit" placeholder="Limit" value="50" min="1" max="200">
+                        </div>
+                        <div id="logsContainer" class="logs-container">
+                            <p>Klik "Refresh Logs" untuk memuat data.</p>
+                        </div>
+                    </div>
+
+                    <!-- Claims Display -->
+                    <div class="claims-section">
+                        <h3>📋 Claims Database</h3>
+                        <div class="filter-controls">
+                            <select id="claimStatusFilter">
+                                <option value="">All Status</option>
+                                <option value="PENDING_INACBG">Pending INACBG</option>
+                                <option value="CLAIM_CREATED">Claim Created</option>
+                                <option value="CLAIM_UPDATED">Claim Updated</option>
+                                <option value="CLAIM_DELETED">Claim Deleted</option>
+                                <option value="CLAIM_FINAL">Claim Final</option>
+                                <option value="CLAIM_FAILED">Claim Failed</option>
+                            </select>
+                            <input type="number" id="claimLimit" placeholder="Limit" value="50" min="1" max="200">
+                        </div>
+                        <div id="claimsContainer" class="claims-container">
+                            <p>Klik "Refresh Claims" untuk memuat data.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 INACBG Complete Bridging System | Version 2.0</p>
+            <div class="footer-links">
+                <a href="/api-docs" target="_blank">📚 API Docs</a>
+                <span>|</span>
+                <a href="/health" target="_blank">💚 Health Check</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="modal">
+        <div class="modal-content">
+            <div class="spinner"></div>
+            <p id="loadingText">Sedang memproses...</p>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h3 id="confirmTitle">Konfirmasi</h3>
+            <p id="confirmMessage">Apakah Anda yakin?</p>
+            <div class="modal-actions">
+                <button id="confirmBtn" class="btn-danger">Ya</button>
+                <button id="cancelBtn" class="btn-secondary">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script-complete.js"></script>
+</body>
+</html>

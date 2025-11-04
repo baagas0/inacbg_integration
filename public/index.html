@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INACBG Bridging System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>INACBG Bridging System</h1>
+            <p>Sistem Integrasi Klaim BPJS Kesehatan</p>
+        </header>
+
+        <main>
+            <!-- Authentication Section -->
+            <section class="section">
+                <h2>🔐 Autentikasi INACBG</h2>
+                <form id="authForm" class="form-card">
+                    <div class="form-group">
+                        <label for="encryptionKey">Encryption Key:</label>
+                        <input type="text" id="encryptionKey" name="encryption_key" required
+                               placeholder="Masukkan encryption key dari INACBG">
+                        <button type="submit">Simpan Key</button>
+                    </div>
+                </form>
+                <div id="authStatus" class="status-message"></div>
+            </section>
+
+            <!-- New Claim Section -->
+            <section class="section">
+                <h2>📋 Pengajuan Klaim Baru</h2>
+                <form id="claimForm" class="form-card">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nomorSep">Nomor SEP:</label>
+                            <input type="text" id="nomorSep" name="nomor_sep" required
+                                   placeholder="0001R0011123000001">
+                        </div>
+                        <div class="form-group">
+                            <label for="nomorKartu">Nomor Kartu BPJS:</label>
+                            <input type="text" id="nomorKartu" name="nomor_kartu"
+                                   placeholder="0001234567890">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="namaPasien">Nama Pasien:</label>
+                        <input type="text" id="namaPasien" name="nama_pasien"
+                               placeholder="John Doe">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dataProvider">Data Provider (JSON):</label>
+                        <textarea id="dataProvider" name="data_provider" rows="8" required
+                                  placeholder='{"provider_name": "RS Sehat", "provider_code": "12345678", ...}'></textarea>
+                        <small>Masukkan data provider dalam format JSON</small>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Ajukan Klaim Baru</button>
+                        <button type="button" class="btn-secondary" onclick="clearForm()">Clear Form</button>
+                    </div>
+                </form>
+                <div id="claimStatus" class="status-message"></div>
+            </section>
+
+            <!-- Response Logs Section -->
+            <section class="section">
+                <h2>📊 Log Respons API</h2>
+                <div class="log-controls">
+                    <button onclick="loadLogs()" class="btn-primary">Refresh Logs</button>
+                    <button onclick="clearLogs()" class="btn-secondary">Clear Display</button>
+                </div>
+                <div id="logsContainer" class="logs-container">
+                    <p>Belum ada log tersedia. Klik "Refresh Logs" untuk memuat data.</p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 INACBG Bridging System</p>
+        </footer>
+    </div>
+
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="modal">
+        <div class="modal-content">
+            <div class="spinner"></div>
+            <p>Sedang memproses...</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
