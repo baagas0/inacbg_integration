@@ -1,58 +1,20 @@
 const axios = require('axios');
 const db = require('../models');
-const crypto = require('crypto');
-const moment = require('moment');
+const { inacbg_encrypt, inacbg_decrypt } = require('./inacbgCrypto');
 
-// Placeholder for the actual encryption/decryption logic.
-// The real implementation would use the specific symmetric encryption algorithm
-// (e.g., AES-256-CBC) and padding scheme required by INACBG.
-// For this example, we will use a simple Base64 encoding as a placeholder.
+const baseUrl = process.env.INACBG_API_URL || '';
 
-/**
- * Placeholder for INACBG-specific encryption.
- * In a real scenario, this would be the actual symmetric encryption (e.g., AES)
- * using the encryption_key from the database.
- * @param {string} data - The JSON string to encrypt.
- * @param {string} key - The encryption key.
- * @returns {string} The encrypted data.
- */
-const encryptData = (data, key) => {
-  // NOTE: This is a placeholder. The actual INACBG encryption logic must be implemented here.
-  // Example: AES-256-CBC encryption with specific IV and padding.
-  console.log('WARNING: Using Base64 placeholder for encryption. Replace with actual INACBG crypto logic.');
-  return Buffer.from(data).toString('base64');
-};
-
-/**
- * Placeholder for INACBG-specific decryption.
- * @param {string} encryptedData - The encrypted string to decrypt.
- * @param {string} key - The encryption key.
- * @returns {object} The decrypted JSON object.
- */
-const decryptData = (encryptedData, key) => {
-  // NOTE: This is a placeholder. The actual INACBG decryption logic must be implemented here.
-  try {
-    const decryptedString = Buffer.from(encryptedData, 'base64').toString('utf8');
-    return JSON.parse(decryptedString);
-  } catch (error) {
-    console.error('Decryption/Parsing Error:', error);
-    return { metadata: { code: 500, message: 'Decryption or JSON parsing failed' } };
-  }
-};
-
-/**
- * Get the current encryption key from the database.
- * @returns {string} The encryption key.
- */
 const getEncryptionKey = async () => {
   const token = await db.AuthToken.findOne({
     where: { key_name: 'INACBG_ENCRYPTION_KEY' },
     order: [['generated_at', 'DESC']],
   });
+
   if (!token) {
     throw new Error('Encryption key not found. Please set the key first.');
   }
-  console.log('===> inacbgService.js:53 ~ token', token);
+
+  console.log('===> inacbgService.js:75 ~ encryption key found and validated');
   return token.encryption_key;
 };
 
@@ -62,69 +24,75 @@ const getEncryptionKey = async () => {
  * @param {object} data - The payload data for the method.
  * @returns {object} The decrypted response data.
  */
-const callInacbgApi = async (method, data) => {
+const callInacbgApi = async (data) => {
   const key = await getEncryptionKey();
   const api_url = process.env.INACBG_API_URL;
-  console.log('===> inacbgService.js:66 ~ api_url', api_url);
 
-  // 1. Prepare the request payload
-  const requestData = JSON.stringify(data);
-  const encryptedData = encryptData(requestData, key);
+  if (!api_url) {
+    throw new Error('INACBG_API_URL not configured in environment variables');
+  }
 
-  // const requestPayload = {
-  //   metadata: { method },
-  //   data: encryptedData,
-  // };
-  const requestPayload = encryptData({
-    metadata: { method },
-    data: encryptedData,
-  }, key)
-  console.log('===> inacbgService.js:74 ~ requestPayload', requestPayload);
-
-  let response;
-  let responseStatus = 0;
-  let responseBody = {};
-  let isSuccess = false;
 
   try {
-    // 2. Send the request
-    response = await axios.post(api_url, requestPayload, {
-      headers: {
-        'Content-Type': 'application/json',
+    const requestPayload = inacbg_encrypt(data, key);
+
+    let config = {
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: baseUrl,
+      headers: { 
+        'Content-Type': 'application/json'
       },
-    });
+      data : requestPayload
+    };
 
-    responseStatus = response.status;
-    responseBody = response.data;
-    console.log('===> inacbgService.js:93 ~ responseBody', responseBody);
+    const response = await axios.request(config);
 
-    // 3. Decrypt the response data
-    const decryptedResponse = decryptData(responseBody, key);
-    console.log('===> inacbgService.js:97 ~ decryptedResponse', decryptedResponse);
-    isSuccess = decryptedResponse.metadata && decryptedResponse.metadata.code === 200;
+    const decrypt = inacbg_decrypt(response.data, key);
+    console.log('===> inacbgService.js:52 ~ decrypt', decrypt);
 
-    // 4. Log the transaction
+    // 4. Determine success status
+    const isSuccess = (decrypt.metadata && decrypt.metadata.code === 200) || false;
+    console.log('===> inacbgService.js:55 ~ isSuccess', isSuccess);
+
+    // 5. Log the transaction
     await db.ResponseLog.create({
-      method,
+      method: data.metadata ? data.metadata.method : 'unknown',
       request_payload: JSON.stringify(requestPayload),
-      response_status: responseStatus,
-      response_body: JSON.stringify(responseBody),
+      response_status: response.status,
+      response_body: JSON.stringify(response.data),
       is_success: isSuccess,
+      response_data: decrypt // Store parsed response
     });
 
-    return decryptedResponse;
+    return JSON.parse(decrypt);
 
   } catch (error) {
-    // Log error response
-    responseStatus = error.response ? error.response.status : 500;
-    responseBody = error.response ? error.response.data : { error: error.message };
+    // Handle different types of errors
+    let responseStatus = 500;
+    let responseBody = { error: error.message };
 
+    if (error.response) {
+      // The server responded with an error status
+      responseStatus = error.response.status;
+      responseBody = error.response.data;
+      console.error(`===> INACBG API Error ${responseStatus}:`, responseBody);
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('===> INACBG API No Response:', error.message);
+      responseBody = { error: 'No response from INACBG server' };
+    } else {
+      // Something happened in setting up the request
+      console.error('===> INACBG API Request Error:', error.message);
+    }
+
+    // Log the error transaction
     await db.ResponseLog.create({
-      method,
-      request_payload: JSON.stringify(requestPayload),
+      method: data.metadata ? data.metadata.method : 'unknown',
+      request_payload: JSON.stringify({ error: 'Request failed before encryption' }),
       response_status: responseStatus,
       response_body: JSON.stringify(responseBody),
-      is_success: false,
+      is_success: false
     });
 
     throw new Error(`INACBG API call failed: ${error.message}`);
@@ -132,8 +100,6 @@ const callInacbgApi = async (method, data) => {
 };
 
 module.exports = {
-  encryptData,
-  decryptData,
   getEncryptionKey,
   callInacbgApi,
 };

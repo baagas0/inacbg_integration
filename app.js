@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const db = require('./models');
 const { callInacbgApi } = require('./services/inacbgService');
+const { default: axios } = require('axios');
+const { inacbg_encrypt, inacbg_decrypt } = require('./services/inacbgCrypto');
 
 const app = express();
 const PORT = 3000;
@@ -97,16 +99,98 @@ app.get('/pencarian/idrg/diagnosa', async (req, res) => {
 
   try {
 
-    const inacbgResponse = await callInacbgApi('search_diagnosis_inagroupercl', {
-      keyword: q,
+    const inacbgResponse = await callInacbgApi({
+      metadata: {
+        method: 'search_diagnosis_inagrouper',
+      },
+      data: {
+        keyword: q,
+      }
     });
+    console.log('===> app.js:103 ~ inacbgResponse', inacbgResponse);
 
-    res.status(200).json({
-      diagnoses: inacbgResponse.data || [],
-    });
+    res.status(200).json(inacbgResponse);
   } catch (error) {
     console.error('Error searching diagnoses:', error);
     res.status(500).json({ message: 'Failed to search diagnoses', error: error.message });
+  }
+});
+
+// Route to test encryption
+app.get('/api/test-encryption', async (req, res) => {
+  try {
+    const { testEncryptionWithCurrentKey } = require('./services/inacbgService');
+    const result = await testEncryptionWithCurrentKey();
+
+    res.status(200).json({
+      success: result,
+      message: result ? 'Encryption test PASSED' : 'Encryption test FAILED',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Encryption test failed',
+      error: error.message
+    });
+  }
+});
+
+// Route to test all encryption methods
+app.get('/api/test-encryption-methods', async (req, res) => {
+  try {
+    const { testEncryptionMethods } = require('./services/inacbgCryptoFallback');
+    const { getEncryptionKey } = require('./services/inacbgService');
+
+    const key = await getEncryptionKey();
+    const results = await testEncryptionMethods(key);
+
+    res.status(200).json({
+      message: 'Encryption methods test results',
+      key_length: key.length,
+      results: results,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Encryption methods test failed',
+      error: error.message
+    });
+  }
+});
+
+// Route to test specific encryption
+app.post('/api/test-specific-encryption', async (req, res) => {
+  try {
+    const { encryptData, decryptData, getEncryptionKey } = require('./services/inacbgService');
+
+    const key = await getEncryptionKey();
+    const testData = req.body.data || { test: 'specific test', timestamp: new Date().toISOString() };
+    const jsonString = JSON.stringify(testData);
+
+    console.log('=== Testing Specific Encryption ===');
+    const encrypted = encryptData(jsonString, key);
+    console.log('Encrypted length:', encrypted.length);
+    console.log('Encrypted sample:', encrypted.substring(0, 100) + '...');
+
+    const decrypted = decryptData(encrypted, key);
+    console.log('Decrypted successful');
+
+    res.status(200).json({
+      success: true,
+      original_data: testData,
+      encrypted_length: encrypted.length,
+      encrypted_sample: encrypted.substring(0, 100) + '...',
+      decrypted_result: typeof decrypted === 'object' ? decrypted : 'parsing_failed',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Specific encryption test failed',
+      error: error.message
+    });
   }
 });
 
