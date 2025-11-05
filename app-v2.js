@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const db = require('./models');
 const { callInacbgApi } = require('./services/inacbgService');
 const { default: axios } = require('axios');
 const { inacbg_encrypt, inacbg_decrypt } = require('./services/inacbgCrypto');
@@ -31,6 +30,7 @@ app.post('/bridging', async (req, res) => {
   }
 });
 
+console.log(`While start on port ${PORT}...`);
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
