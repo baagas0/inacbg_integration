@@ -45,15 +45,14 @@ const callInacbgApi = async (data) => {
       },
       data : requestPayload
     };
+    console.log('===> inacbgService.js:40 ~ config', config);
 
     const response = await axios.request(config);
 
     const decrypt = inacbg_decrypt(response.data, key);
-    console.log('===> inacbgService.js:52 ~ decrypt', decrypt);
 
     // 4. Determine success status
     const isSuccess = (decrypt.metadata && decrypt.metadata.code === 200) || false;
-    console.log('===> inacbgService.js:55 ~ isSuccess', isSuccess);
 
     // 5. Log the transaction
     await db.ResponseLog.create({

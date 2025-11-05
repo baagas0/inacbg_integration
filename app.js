@@ -104,8 +104,9 @@ app.get('/pencarian/idrg/diagnosa', async (req, res) => {
         method: 'search_diagnosis_inagrouper',
       },
       data: {
-        keyword: q,
+        keyword: q
       }
+      // {"metadata":{"method":"new_claim"},"data":{"nomor_kartu":"0002368958174","nomor_sep":"0528R0011025K000393","nomor_rm":"02-14-53","nama_pasien":"WA ODE INDRI RAHMAWATI","tgl_lahir":"2012-08-22 07:00:00","gender":2}}
     });
     console.log('===> app.js:103 ~ inacbgResponse', inacbgResponse);
 

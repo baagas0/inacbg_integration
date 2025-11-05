@@ -17,7 +17,7 @@ const inacbg_decrypt = (data, key) => {
     let encoded = Buffer.from(data_decoded.slice(26));
     let signature = data_decoded.slice(0, 10);
     if (!inacbg_compare(signature, encoded, key)) {
-      return "SIGNATURE_NOT_MATCH";
+      return "SIGNATURE_NOT_MATCH"; ala
     }
     let decrypted = Buffer.concat([dec.update(encoded), dec.final()]);
     return decrypted.toString("utf8");
@@ -27,6 +27,7 @@ const inacbg_decrypt = (data, key) => {
   }
 };
 const inacbg_encrypt = (data, key) => {
+  const info = crypto.getCipherInfo('aes-256-cbc')
   if (typeof data === "object") {
     data = JSON.stringify(data);
   } 
