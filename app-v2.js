@@ -30,6 +30,17 @@ app.post('/bridging', async (req, res) => {
   }
 });
 
+app.post('/encrypt', async (req, res) => {
+  const { data, key } = req.body;
+  try {
+    const encryptedData = await inacbg_encrypt(data, key);
+    res.status(200).json({ encrypted: encryptedData });
+  } catch (error) {
+    console.log('===> app-v2.js:42 ~ error', error);
+    res.status(500).json({ message: 'Encryption failed 123', error: error.message });
+  }
+});
+
 console.log(`While start on port ${PORT}...`);
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
