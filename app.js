@@ -5,8 +5,10 @@ const { callInacbgApi } = require('./services/inacbgService');
 const { default: axios } = require('axios');
 const { inacbg_encrypt, inacbg_decrypt } = require('./services/inacbgCrypto');
 
+const keyInacbg = process.env.INACBG_ENCRYPTION_KEY || '';
+
 const app = express();
-const PORT = 3000;
+const PORT = 3001;
 
 app.use(express.json());
 app.use(express.static('public'));
@@ -107,7 +109,7 @@ app.get('/pencarian/idrg/diagnosa', async (req, res) => {
         keyword: q
       }
       // {"metadata":{"method":"new_claim"},"data":{"nomor_kartu":"0002368958174","nomor_sep":"0528R0011025K000393","nomor_rm":"02-14-53","nama_pasien":"WA ODE INDRI RAHMAWATI","tgl_lahir":"2012-08-22 07:00:00","gender":2}}
-    });
+    }, keyInacbg);
     console.log('===> app.js:103 ~ inacbgResponse', inacbgResponse);
 
     res.status(200).json(inacbgResponse);

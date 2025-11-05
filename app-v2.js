@@ -4,6 +4,7 @@ const { callInacbgApi } = require('./services/inacbgService');
 const { default: axios } = require('axios');
 const { inacbg_encrypt, inacbg_decrypt } = require('./services/inacbgCrypto');
 
+const key = process.env.INACBG_ENCRYPTION_KEY || '';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -11,10 +12,10 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // --- Routes ---
-app.post('/bridging', async (req, res) => {
-  const { data, key } = req.body;
+app.get('/bridging', async (req, res) => {
+  // const { data, key } = req.param;
   try {
-    const inacbgResponse = await callInacbgApi({
+    const inacbgResponse = await c({
       metadata: {
         method: 'search_diagnosis_inagrouper',
       },
@@ -33,11 +34,43 @@ app.post('/bridging', async (req, res) => {
 app.post('/encrypt', async (req, res) => {
   const { data, key } = req.body;
   try {
-    const encryptedData = await inacbg_encrypt(data, key);
+    const encryptedData = await inacbg_encrypt({
+      metadata: { method: 'search_diagnosis_inagrouper' },
+      data: { keyword: 'A00' }
+    }, '9361b8698dff151c76a39942b26e16e94847fc2c24c86fccdedb5b24a7ab4434');
+    console.log('===> app-v2.js:38 ~ encryptedData', encryptedData);
     res.status(200).json({ encrypted: encryptedData });
   } catch (error) {
     console.log('===> app-v2.js:42 ~ error', error);
     res.status(500).json({ message: 'Encryption failed 123', error: error.message });
+  }
+});
+
+app.post('/decrypt', async (req, res) => {
+  const { data, key } = req.body;
+  try {
+    const decryptedData = await inacbg_decrypt(data, key);
+    res.status(200).json({ decrypted: decryptedData });
+  } catch (error) {
+    console.log('===> app-v2.js:60 ~ error', error);
+    res.status(500).json({ message: 'Decryption failed', error: error.message });
+  }
+});
+
+app.get('/check', async (req, res) => {
+  try {
+    const response = await callInacbgApi({
+      metadata: {
+        method: 'check',
+      },
+      data: {
+        key
+      }
+    });
+    res.status(200).json({ message: 'API is running', data: response });
+  } catch (error) {
+    console.log('===> app-v2.js:60 ~ error', error);
+    res.status(500).json({ message: 'API is not running', error: error.message });
   }
 });
 
