@@ -34,11 +34,7 @@ app.get('/bridging', async (req, res) => {
 app.post('/encrypt', async (req, res) => {
   const { data, key } = req.body;
   try {
-    const encryptedData = await inacbg_encrypt({
-      metadata: { method: 'search_diagnosis_inagrouper' },
-      data: { keyword: 'A00' }
-    }, '9361b8698dff151c76a39942b26e16e94847fc2c24c86fccdedb5b24a7ab4434');
-    console.log('===> app-v2.js:38 ~ encryptedData', encryptedData);
+    const encryptedData = await inacbg_encrypt(data, key);
     res.status(200).json({ encrypted: encryptedData });
   } catch (error) {
     console.log('===> app-v2.js:42 ~ error', error);

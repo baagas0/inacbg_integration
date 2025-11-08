@@ -27,8 +27,6 @@ const inacbg_decrypt = (data, key) => {
   }
 };
 const inacbg_encrypt = (data, key) => {
-  console.log('===> inacbgCrypto.js:30 ~ key', key);
-  console.log('===> inacbgCrypto.js:30 ~ data', data);
   const info = crypto.getCipherInfo('aes-256-cbc')
   if (typeof data === "object") {
     data = JSON.stringify(data);
